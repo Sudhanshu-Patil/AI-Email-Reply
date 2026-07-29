@@ -1,0 +1,24 @@
+{"record_id": "int-005", "variant": "static_fewshot", "sendability": 2, "note": "asks for the wrong details; misses budget and adapter-support questions; wrong persona register", "annotator": "author"}
+{"record_id": "sup-007", "variant": "rag_plus_stylecard", "sendability": 3, "note": "refuses correctly but offers upgrade/API instead of the free manual export the human gave", "annotator": "author"}
+{"record_id": "ven-001", "variant": "static_fewshot", "sendability": 1, "note": "ACCEPTS the 18 per cent uplift the human rejected - financially harmful to send", "annotator": "author"}
+{"record_id": "sup-006", "variant": "zero_shot", "sendability": 2, "note": "right instinct to verify, but invents its own process and misses the billing-contact rule", "annotator": "author"}
+{"record_id": "rec-006", "variant": "rag_fewshot", "sendability": 2, "note": "requires consent correctly, then offers to disclose salary which the human explicitly refuses", "annotator": "author"}
+{"record_id": "int-009", "variant": "rag_fewshot", "sendability": 3, "note": "correct refusal but defers instead of counter-proposing 99.9 per cent with a Q4 review", "annotator": "author"}
+{"record_id": "bil-008", "variant": "static_fewshot", "sendability": 2, "note": "engages with the withholding rather than declining to rule on it and referring to Karim", "annotator": "author"}
+{"record_id": "out-008", "variant": "zero_shot", "sendability": 2, "note": "refuses referrals correctly but signals interest in the role the human declined", "annotator": "author"}
+{"record_id": "rec-002", "variant": "zero_shot", "sendability": 2, "note": "promises to review rather than delivering the rejection decision the human gave", "annotator": "author"}
+{"record_id": "int-005", "variant": "rag_fewshot", "sendability": 2, "note": "asks four questions, none of them the two that actually decide the spec", "annotator": "author"}
+{"record_id": "int-009", "variant": "rag_plus_stylecard", "sendability": 4, "note": "correct refusal in the right terse voice; missing only the 99.9 per cent counter-offer", "annotator": "author"}
+{"record_id": "bil-012", "variant": "zero_shot", "sendability": 2, "note": "asks for an invoice reference instead of agreeing the instalment plan", "annotator": "author"}
+{"record_id": "bil-008", "variant": "zero_shot", "sendability": 2, "note": "asks for documentation instead of referring the decision to the commercial team", "annotator": "author"}
+{"record_id": "sup-001", "variant": "rag_fewshot", "sendability": 2, "note": "opens a ticket and asks for details where the human had already diagnosed and fixed it", "annotator": "author"}
+{"record_id": "out-008", "variant": "static_fewshot", "sendability": 2, "note": "declines referrals but fabricates hr@northwindsystems.com - wrong domain", "annotator": "author"}
+{"record_id": "int-009", "variant": "static_fewshot", "sendability": 3, "note": "correct refusal and roadmap offer, but no concrete 99.9 per cent commitment; wordy for this persona", "annotator": "author"}
+{"record_id": "ven-007", "variant": "rag_plus_stylecard", "sendability": 3, "note": "right voice and acknowledgement, but misses both specific asks (collection date, four cages)", "annotator": "author"}
+{"record_id": "out-005", "variant": "rag_plus_stylecard", "sendability": 2, "note": "asks about travel coverage, implying willingness to travel, where the human declined Berlin", "annotator": "author"}
+{"record_id": "ven-001", "variant": "rag_plus_stylecard", "sendability": 1, "note": "\"Send the paperwork\" - accepts the 18 per cent uplift the human rejected", "annotator": "author"}
+{"record_id": "out-003", "variant": "static_fewshot", "sendability": 3, "note": "asks clarifying questions instead of committing to 900 words by 18 April", "annotator": "author"}
+{"record_id": "ven-007", "variant": "zero_shot", "sendability": 2, "note": "acknowledges but misses both asks and uses the wrong register for this persona", "annotator": "author"}
+{"record_id": "sch-012", "variant": "rag_plus_stylecard", "sendability": 4, "note": "confirms the date in the right voice; misses the witness-versus-chair role question", "annotator": "author"}
+{"record_id": "bil-012", "variant": "rag_fewshot", "sendability": 3, "note": "agrees the three instalments but shifts every due date a month later than the human", "annotator": "author"}
+{"record_id": "sup-018", "variant": "rag_fewshot", "sendability": 2, "note": "escalates correctly then confirms preservation is in place, which the human refused to confirm", "annotator": "author"}

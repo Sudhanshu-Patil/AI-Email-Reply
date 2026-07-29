@@ -1,0 +1,19 @@
+# Core
+numpy>=1.26
+scikit-learn>=1.4
+scipy>=1.11
+python-dotenv>=1.0
+rich>=13.0
+
+# Embeddings (runs offline once the model is cached)
+sentence-transformers>=3.0
+
+# LLM providers
+openai>=1.50            # used for both OpenAI and Groq (OpenAI-compatible endpoint)
+google-generativeai>=0.8 # Gemini
+
+# UI
+streamlit>=1.40
+
+# Tests
+pytest>=8.0

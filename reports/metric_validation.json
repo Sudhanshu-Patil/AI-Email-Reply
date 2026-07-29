@@ -1,0 +1,72 @@
+{
+  "probes": {
+    "n_records": 29,
+    "n_checks": 270,
+    "n_passed": 270,
+    "pass_rate": 1.0,
+    "mean_composite_by_probe": {
+      "generic": 28.32,
+      "gold": 91.96,
+      "gold_fact_corrupted": 40.0,
+      "gold_forbidden": 40.0,
+      "gold_intent_inverted": 28.84,
+      "gold_placeholder": 40.0,
+      "gold_slang": 80.73,
+      "wrong_email": 33.59
+    },
+    "failures_by_check": {}
+  },
+  "intent_accuracy": {
+    "n": 29,
+    "exact": 0.7586,
+    "mean_credit": 0.8207,
+    "chance": 0.1111
+  },
+  "scale": {
+    "floor_mismatched_reply": {
+      "mean": 33.59,
+      "lo": 30.63,
+      "hi": 36.68,
+      "n": 29
+    },
+    "ceiling_human_reply": {
+      "mean": 91.96,
+      "lo": 88.45,
+      "hi": 94.87,
+      "n": 29
+    }
+  },
+  "human_ratings_available": 24,
+  "correlation": {
+    "n": 24,
+    "spearman_rho": 0.2648,
+    "kendall_tau_b": 0.2043,
+    "pearson_r": 0.2612,
+    "spearman_95ci": [
+      -0.1552,
+      0.6037
+    ]
+  },
+  "component_correlation": {
+    "grounding": {
+      "spearman_rho": 0.5091,
+      "n": 24
+    },
+    "intent": {
+      "spearman_rho": 0.1652,
+      "n": 24
+    },
+    "similarity": {
+      "spearman_rho": 0.1687,
+      "n": 24
+    },
+    "style": {
+      "spearman_rho": 0.2962,
+      "n": 24
+    },
+    "sendability": {
+      "spearman_rho": -0.1393,
+      "n": 24
+    }
+  }
+}
