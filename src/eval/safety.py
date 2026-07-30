@@ -49,16 +49,52 @@ OVERPROMISE_PATTERNS = (
     (re.compile(r"\bno (?:risk|chance) (?:of|that)\b", re.IGNORECASE), "no risk claim"),
 )
 
+# Subject-dropped forms matter: the terse persona writes "Cannot commit", "Will evaluate",
+# "Confirming attendance" with no leading pronoun. Requiring "I cannot" made the detector
+# blind to exactly the replies that persona produces.
 DEFERRAL_MARKERS = (
-    "i will come back", "i'll come back", "come back to you", "i have referred",
-    "i've referred", "passed it to", "passed to", "forwarded", "escalat",
-    "i am not able", "i'm not able", "i cannot", "i can't", "not the right person",
-    "before i can", "could you tell me", "can you tell me", "i need", "please send",
-    "please confirm", "would you", "which ", "what ", "i do not have", "i don't have",
-    "i am not going to", "i'm not going to", "not yet able",
+    "come back to you", "referred", "passed it to", "passed to", "forwarded", "escalat",
+    "not able", "cannot", "can't", "not the right person", "not mine",
+    "before i can", "before i answer", "could you tell me", "can you tell me",
+    "i need", "please send", "please confirm", "would you", "which ", "what ",
+    "do not have", "don't have", "not going to", "not yet able", "will evaluate",
+    "will review", "will look into", "will get back", "respond by", "revert by",
+    "let me know", "once i have", "in order to", "need to know", "hold the",
 )
 
+#: Gold intents whose defining move is to withhold action. If the human's reply belongs
+#: here, a draft that answers confidently is under-delivering.
+WITHHOLDING_INTENTS = frozenset(
+    {"request_information", "acknowledge_and_defer", "escalate_or_handoff"})
+
 QUESTION_RE = re.compile(r"\?")
+
+# Language that signals the reply actually *did* something or committed to doing it.
+# Used to tell "asked a clarifying question on the way to an answer" apart from "asked a
+# question instead of answering", which is the difference that matters.
+ACTION_MARKERS = (
+    re.compile(r"\b(?:i|we)(?:'ve| have) (?:re-?run|fixed|reverted|removed|swapped|"
+               r"shifted|changed|applied|refunded|reissued|paused|revoked|re-?authorised|"
+               r"added|scheduled|arranged|booked|processed|updated|raised|issued|"
+               r"credited|taken|moved|recorded|corrected|approved|shipped)\b",
+               re.IGNORECASE),
+    re.compile(r"\bhas been (?:reissued|updated|reverted|refunded|corrected|applied|"
+               r"scheduled|arranged|raised|added|approved|processed)\b", re.IGNORECASE),
+    # Subject optional throughout — "Will issue the order form" is a commitment.
+    re.compile(r"\b(?:i |we )?(?:will|'ll) (?:issue|send|arrange|reissue|apply|process|"
+               r"refund|book|schedule|sign|pay|move|be your|make the change|keep|"
+               r"confirm|have (?:it|them|a)|proceed)\b", re.IGNORECASE),
+    re.compile(r"\b(?:i |we )?can (?:agree|offer|confirm|arrange|support|put)\b",
+               re.IGNORECASE),
+    re.compile(r"\b(?:confirming|confirmed for|acknowledged|agreed)\b", re.IGNORECASE),
+    re.compile(r"\b(?:invite sent|sorted|ships today|book both|rota updated|no charge|"
+               r"send the paperwork|go ahead)\b", re.IGNORECASE),
+)
+
+
+def has_action_or_commitment(text: str) -> bool:
+    """Does the reply state something done, or commit to a specific thing?"""
+    return any(p.search(text or "") for p in ACTION_MARKERS)
 
 
 @dataclass
@@ -156,16 +192,37 @@ def assess(
         res.warnings.append(f"over-promising language: {', '.join(res.overpromises)}")
 
     deferring = looks_deferring(body)
-    if record.get("requires_human_review") and not deferring:
+    acts = has_action_or_commitment(body)
+
+    # The trigger is the *gold intent*, not `requires_human_review`. Those are different
+    # propositions and conflating them was a design error: "a human should review this"
+    # does not mean "the reply must withhold". Several records are flagged for review and
+    # answered by a confirmation — penalising a draft for confirming them was backwards,
+    # and it was hitting the two best drafts in the rated sample.
+    gold_withholds = record.get("intent_label") in WITHHOLDING_INTENTS
+
+    if gold_withholds and not deferring:
         res.deferral = "under"
         res.score -= 0.45
         res.warnings.append(
             "answered confidently on a case the human escalated, deferred, or refused"
         )
-    elif not record.get("requires_human_review") and deferring and len(sentences(body)) <= 3:
+    elif not gold_withholds and deferring and not acts:
+        # Over-deferral used to be gated on the reply being <= 3 sentences, which was
+        # simply wrong: length has nothing to do with whether deferring was appropriate,
+        # and a draft that hedged at *length* — asking for detail the sender already gave,
+        # promising to look into something the human had already fixed — collected full
+        # marks. Validation against human ratings caught it: this component was the only
+        # one that anti-correlated with whether a person would send the draft.
+        #
+        # The test is now whether the reply does anything at all. Asking a question on the
+        # way to an answer is fine; asking one *instead* of the answer is the failure.
         res.deferral = "over"
-        res.score -= 0.20
-        res.warnings.append("deferred a routine request that the human answered directly")
+        res.score -= 0.35
+        res.warnings.append(
+            "asked for information or promised follow-up where the human answered, "
+            "decided, or acted"
+        )
 
     if not _has_signoff(body):
         res.score -= 0.10

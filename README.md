@@ -139,36 +139,47 @@ by the number it is meant to validate (`python cli.py export-ratings`).
 
 | | Spearman ρ vs human rating |
 |---|---:|
-| **Composite** | **0.265** (95% CI −0.16 to 0.60) |
+| **Composite** | **0.298** (95% CI −0.12 to 0.63) |
 | grounding | **+0.509** |
 | style | +0.296 |
 | similarity | +0.169 |
 | intent | +0.165 |
-| **sendability** | **−0.139** |
+| sendability | −0.177 |
 
 **This is a weak result and I am not going to dress it up.** The composite's confidence
 interval crosses zero: at n=24 this does not demonstrate that the composite tracks human
-judgement. Two things are worth saying about it.
+judgement. Three things are worth saying about it.
 
-First, the component structure behaves exactly as designed. Grounding — the heaviest
-weighted component, and the one I argued matters most — is comfortably the best predictor
-of whether I'd send a draft. That is the metric's central design claim, and it survives.
+**The component structure behaves as designed.** Grounding — the heaviest-weighted
+component, and the one I argued matters most — is comfortably the best predictor of whether
+I would send a draft. That is the metric's central design claim, and it survives.
 
-Second, **`sendability` anti-correlates**, and that is a real defect the validation caught
-in my own metric. The likely cause is specific: the over-deferral penalty in
-`src/eval/safety.py` only fires for replies of three sentences or fewer, so a draft that
-hedges *at length* — asks for information the human simply provided, opens a ticket where
-the human had already fixed the problem — collects full sendability marks while I rate it a
-2. Nearly half the drafts I rated do exactly this.
+**`sendability` anti-correlates, and chasing that was a mistake worth recording.** I made
+three attempts to fix it against these same 24 labels — removing a nonsensical
+length gate, broadening deferral detection for the subject-dropping terse persona, and
+replacing `requires_human_review` with the gold intent family as the trigger. All three
+were structurally justified and I kept them. **None moved the correlation** (−0.139 →
+−0.194 → −0.177). That pattern is the signature of fitting noise, and it is why the
+guidance against tuning on your validation labels exists.
 
-**I have deliberately not re-tuned the weights to fix it.** With 24 single-annotator labels,
-tuning against them would be fitting noise and would destroy the independence of the only
-human check in the project. The fix is a wider deferral test validated against *new* labels,
-not a reweighting against these. That's recorded as next work rather than quietly applied.
+The actual explanation is that **rank correlation is the wrong instrument for this
+component.** Sendability is a rare-event *safety* detector — placeholders, fabricated
+references, forbidden claims. Across the 24 rated drafts it fired on 3, with **zero
+placeholders and zero fabricated references**; 14 of 24 sit at exactly 1.00. A near-constant
+cannot correlate with anything, and the residual variance is noise whose sign means
+nothing. Its correct validation is the probe suite — detection rate on inputs that *do*
+contain those failures — where it catches **100%** of forbidden-claim, placeholder and
+fabricated-reference probes.
 
-**Honest limitation: one annotator, no inter-annotator agreement.** I wrote both the
-dataset and the ratings. A second rater is the single highest-value addition to this
-project.
+That distinction generalises: a component that measures how *good* a reply is should be
+validated by correlation; a component that measures whether a reply is *dangerous* should
+be validated by detection rate on known-bad inputs. Applying one test to both was my error,
+not the component's.
+
+**Honest limitation: one annotator, no inter-annotator agreement**, and the sendability
+rules were revised three times while looking at these labels — so its numbers here are no
+longer independent evidence. A second rater and a fresh label set are the single
+highest-value addition to this project.
 
 ### (e) An independent model's opinion
 
@@ -223,22 +234,23 @@ Judge biases are handled structurally rather than assumed away:
 
 | Variant | Composite (95% CI) | Sendable | Edit-free | Grounding |
 |---|---:|---:|---:|---:|
-| `zero_shot` | 38.2 [34.9–41.9] | 93% | 0% | 0.03 |
-| `static_fewshot` | 38.6 [36.1–41.4] | 86% | 0% | 0.06 |
-| **`rag_fewshot`** | **42.7 [39.2–46.8]** | 93% | 0% | 0.10 |
-| `rag_plus_stylecard` | 40.8 [34.7–46.5] | 83% | 0% | 0.12 |
-| **human reply (ceiling)** | **92.0 [88.5–94.9]** | 100% | 100% | 1.00 |
+| `zero_shot` | 36.5 [33.1–40.4] | 93% | 0% | 0.03 |
+| `static_fewshot` | 35.4 [32.6–38.3] | 86% | 0% | 0.06 |
+| **`rag_fewshot`** | **41.2 [37.3–45.6]** | 93% | 0% | 0.10 |
+| `rag_plus_stylecard` | 40.1 [34.2–45.9] | 83% | 0% | 0.12 |
+| **human reply (ceiling)** | **92.2 [88.7–95.1]** | 100% | 100% | 1.00 |
 
 Retrieval ranks top, as predicted. **But every interval overlaps its neighbour, so the
-ablation has not demonstrated a real difference** — 29 items is too few to separate 38 from
-43. The report states this per adjacent pair rather than presenting a leaderboard.
+ablation has not demonstrated a real difference** — 29 items is too few to separate 35 from
+41. The report states this per adjacent pair rather than presenting a leaderboard.
 
-The honest headline: the best variant reaches **46% of the human ceiling**, and
+The honest headline: the best variant reaches **45% of the human ceiling**, and
 **0% of drafts were sendable without edits**. Grounding at 0.10 means the drafts state
-roughly one in ten of the facts they owe. Reading them (§ the worst-five section of
-`reports/report.md`) shows why: they are fluent and plausible and they systematically ask
+roughly one in ten of the facts they owe. Reading them (the worst-five section of
+`reports/report.md`) shows why: they are fluent and plausible, and they systematically ask
 for information or promise follow-up where the human answered, decided, or refused. Two
-drafts accepted an 18% price increase the human explicitly rejected.
+drafts accepted an 18% price increase the human explicitly rejected; another confirmed a
+legal preservation the human deliberately refused to confirm.
 
 That is a genuinely poor result for the generator, and the metric surfacing it clearly is
 the point. A system that reported "82% accurate" on this output would be broken.
@@ -476,14 +488,15 @@ rather than glossed.
 
 ## 9. What I'd do next, in priority order
 
-1. **Fix the `sendability` component.** It anti-correlates with human judgement
-   (ρ = −0.139) because its over-deferral test only fires on replies of ≤3 sentences, so
-   verbose hedging escapes unpenalised. Widen it to compare the draft's *action* against
-   the gold action regardless of length — then validate against **new** labels, not the 24
-   that diagnosed it.
-2. **A second annotator.** Single-rater correlation with a CI crossing zero is the weakest
-   link in the whole project. More labels and a second rater would either confirm the
-   composite tracks quality or show it doesn't; right now neither is established.
+1. **A second annotator and a fresh label set.** Single-rater correlation with a CI
+   crossing zero is the weakest link in the whole project, and the sendability rules have
+   now been revised three times while looking at the existing 24 labels. More labels from
+   someone else would either confirm the composite tracks quality or show it doesn't;
+   right now neither is established.
+2. **Validate sendability by detection rate, not correlation** — and build an adversarial
+   set that actually contains placeholders, fabricated references and forbidden claims at
+   a realistic rate. It scores 100% on the synthetic probes and fires on 3 of 24 real
+   drafts, which is too few real positives to say anything about its precision.
 3. **Improve the generator.** 0% edit-free and 0.10 grounding is poor. The drafts defer
    where humans act. Worth trying: stronger instruction to commit when the exemplars
    commit, and retrieving on *reply* similarity rather than only incoming-email similarity.

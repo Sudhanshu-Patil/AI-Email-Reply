@@ -113,3 +113,64 @@ class TestGate:
         rec = test[0]
         s = scorer.score(rec["gold_reply"]["body"], rec)
         assert len(s.explain()) > 20
+
+
+class TestDeferralDetection:
+    """Regression tests for the deferral rules.
+
+    All three of these were live defects found by validating against human ratings. The
+    terse persona drops subject pronouns, which made the detector blind to exactly the
+    replies it produces.
+    """
+
+    @pytest.mark.parametrize("text", [
+        "Cannot commit to 99.99% SLA without ops review. Will evaluate and respond by "
+        "end of day Thursday.",
+        "Before I answer - what's the budget per machine?",
+        "Not mine either. Scope questions sit with Nadia in Compliance.",
+        "I'll come back to you by 10:00 tomorrow.",
+    ])
+    def test_deferrals_are_recognised(self, text):
+        from src.eval.safety import looks_deferring
+
+        assert looks_deferring(text), f"missed a deferral: {text!r}"
+
+    @pytest.mark.parametrize("text", [
+        "Confirming attendance on 17 April. Will keep it off the floor.",
+        "I've reverted the thresholds this morning.",
+        "22 April, 10:00, 90 minutes. Invite sent.",
+        "Sorted - I've swapped you with Tom for that week.",
+    ])
+    def test_actions_and_commitments_are_recognised(self, text):
+        from src.eval.safety import has_action_or_commitment
+
+        assert has_action_or_commitment(text), f"missed an action: {text!r}"
+
+    def test_over_deferral_is_not_gated_on_length(self, data, scorer):
+        """A long hedge must be penalised exactly like a short one."""
+        from src.eval.safety import assess
+
+        _, _, test = data
+        acting = next(r for r in test if r["intent_label"] not in
+                      {"request_information", "acknowledge_and_defer", "escalate_or_handoff"})
+        short = "Thanks. Could you tell me more?\n\nBest"
+        long = ("Thank you for reaching out. Could you please confirm the account "
+                "reference, the exact dates involved, and which system you were using? "
+                "Once I have those details I will review this with the team and get back "
+                "to you as soon as I can.\n\nBest regards")
+        assert assess(short, acting, []).deferral == "over"
+        assert assess(long, acting, []).deferral == "over", (
+            "a verbose hedge escaped the over-deferral penalty")
+
+    def test_confirming_a_review_flagged_case_is_not_under_deferral(self, data, scorer):
+        """`requires_human_review` means a human should look, not that the reply must defer."""
+        from src.eval.safety import assess
+
+        _, _, test = data
+        confirming = next(
+            (r for r in test if r.get("requires_human_review")
+             and r["intent_label"] == "confirm_and_commit"), None)
+        if confirming is None:
+            pytest.skip("no review-flagged confirmation in the test split")
+        res = assess("Confirmed for 17 April. Invite sent.\n\n- Dan", confirming, [])
+        assert res.deferral != "under"
