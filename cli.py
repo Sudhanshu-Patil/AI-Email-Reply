@@ -67,13 +67,34 @@ def make_judge_client(args, generator_client):
     if getattr(args, "no_judge", False):
         return None
     provider = args.judge_provider or args.provider
+    return _build_secondary(args, provider, args.judge_model, generator_client)
+
+
+def make_intent_client(args, generator_client):
+    """Model used to label the speech-act of a generated reply.
+
+    Kept separately settable from the judge because the two have very different costs:
+    intent is one short call per reply, judging is several long ones. When the judge is
+    disabled for quota reasons the intent classifier should not be disabled with it —
+    without a model it falls back to offline cues that were written against *human* gold
+    replies and largely miss on generated ones.
+    """
+    provider = getattr(args, "intent_provider", None) or args.provider
+    model = getattr(args, "intent_model", None)
     if provider == "mock":
         return None
-    client = get_client(provider, model=args.judge_model, interactive=True,
+    return _build_secondary(args, provider, model, generator_client)
+
+
+def _build_secondary(args, provider, model, generator_client):
+    """Build a client for a model that assesses the generator's output."""
+    if provider == "mock":
+        return None
+    client = get_client(provider, model=model, interactive=True,
                         cache=not args.no_cache, max_attempts=args.max_attempts, rpm=args.rpm)
-    if args.judge_model is None:
-        # A model grading its own output inflates the score. Pick a different family when
-        # the provider offers one.
+    if model is None:
+        # A model assessing its own output flatters it. Pick a different family when the
+        # provider offers one.
         client._model = pick_judge_model(client, generator_client.model)
     return client
 
@@ -184,12 +205,14 @@ def cmd_evaluate(args) -> int:
 
     client = make_client(args)
     judge_client = make_judge_client(args, client)
+    intent_client = None if args.no_llm_intent else make_intent_client(args, client)
 
     variants = tuple(args.variants.split(",")) if args.variants else (
         "zero_shot", "static_fewshot", "rag_fewshot", "rag_plus_stylecard")
 
     run = run_all(client, judge_client, variants=variants, limit=args.limit,
-                  use_llm_intent=not args.no_llm_intent, judge_samples=args.judge_samples)
+                  use_llm_intent=not args.no_llm_intent, judge_samples=args.judge_samples,
+                  intent_client=intent_client)
     path = save_run(run)
     print(f"\nRun saved: {path.relative_to(ROOT)}")
 
@@ -352,7 +375,13 @@ def main() -> int:
         p.add_argument("--judge-samples", type=int, default=3,
                        help="Judge samples per response for self-consistency (default: 3)")
         p.add_argument("--no-llm-intent", action="store_true",
-                       help="Use the offline cue classifier for intent")
+                       help="Use the offline cue classifier for intent (weaker on "
+                            "generated replies — see README)")
+        p.add_argument("--intent-provider", default=None, choices=sorted(PROVIDERS),
+                       help="Provider for intent classification. Defaults to --provider.")
+        p.add_argument("--intent-model", default=None,
+                       help="Model for intent classification. Cheap (one short call per "
+                            "reply), so worth setting even when the judge is disabled.")
         p.add_argument("--skip-validation", action="store_true")
         p.set_defaults(func=cmd_evaluate if name == "evaluate" else cmd_run_all)
 

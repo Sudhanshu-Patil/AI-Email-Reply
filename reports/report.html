@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Evaluation report — 20260729T113219Z</title>
+<title>Evaluation report — 20260731T032857Z</title>
 <style>
 :root { color-scheme: light dark; --fg:#1a1a1a; --bg:#fff; --mut:#666; --line:#e2e2e2;
          --acc:#2a5db0; --code:#f6f6f6; }
@@ -35,7 +35,7 @@ strong { font-weight:650; }
 </style></head><body>
 <h1>Evaluation report</h1>
 
-<ul><li><strong>Run</strong> <code>20260729T113219Z</code> · 29 held-out emails · 225.3s</li>
+<ul><li><strong>Run</strong> <code>20260731T032857Z</code> · 29 held-out emails · 272.1s</li>
 <li><strong>Generator</strong> <code>groq</code> / <code>openai/gpt-oss-120b</code></li>
 <li><strong>Judge</strong> not used — rule-based components only</li>
 <li><strong>Embeddings</strong> <code>sentence-transformers</code></li>
@@ -60,9 +60,9 @@ strong { font-weight:650; }
 
 <p><strong>Agreement with human ratings</strong> (n=24 replies rated 1–5 for sendability):</p>
 
-<li>Spearman ρ = <strong>0.298</strong> (95% CI -0.12 to 0.63)</li>
-<li>Kendall τ-b = <strong>0.241</strong></li>
-<li>Pearson r = 0.273</li>
+<li>Spearman ρ = <strong>0.257</strong> (95% CI -0.16 to 0.60)</li>
+<li>Kendall τ-b = <strong>0.204</strong></li>
+<li>Pearson r = 0.196</li>
 
 <p>Per component — this is where a weak component gives itself away:</p>
 
@@ -71,15 +71,15 @@ strong { font-weight:650; }
 <tr><td>grounding</td><td>0.509</td></tr>
 <tr><td>style</td><td>0.296</td></tr>
 <tr><td>similarity</td><td>0.169</td></tr>
-<tr><td>intent</td><td>0.165</td></tr>
+<tr><td>intent</td><td>0.073</td></tr>
 <tr><td>sendability</td><td>-0.177</td></tr>
 </table></div>
 
 <p><strong>An independent model&#x27;s opinion</strong> — <code>llama-3.1-8b-instant</code> judging <code>openai/gpt-oss-120b</code>, 29 responses of <code>rag_fewshot</code>:</p>
 
-<li>Spearman ρ vs composite = <strong>0.281</strong> (95% CI -0.09 to 0.59)</li>
-<li>Judge mean sendability 2.759/5, faithfulness 3.552/5</li>
-<li>Responses where the judge flagged an unsupported commitment: 18/29</li>
+<li>Spearman ρ vs composite = <strong>0.339</strong> (95% CI -0.03 to 0.63)</li>
+<li>Judge mean sendability 3.241/5, faithfulness 3.621/5</li>
+<li>Responses where the judge flagged an unsupported commitment: 12/29</li>
 
 <p>The judge is kept out of the scored ablation: free-tier daily token limits made it impossible to judge all four variants under one model, and judging only some of them would let the unjudged ones score higher purely for escaping scrutiny.</p>
 
@@ -91,40 +91,40 @@ strong { font-weight:650; }
 
 <div class="tablewrap"><table>
 <tr><th>Variant</th><th>Composite (95% CI)</th><th>Sendable</th><th>Edit-free</th><th>Grounding</th><th>Intent</th><th>Similarity</th><th>Style</th><th>Sendability</th></tr>
-<tr><td><code>zero_shot</code></td><td>36.5 [33.1–40.4]</td><td>93%</td><td>0%</td><td>0.03</td><td>0.28</td><td>0.48</td><td>0.64</td><td>0.77</td></tr>
-<tr><td><code>static_fewshot</code></td><td>35.4 [32.6–38.3]</td><td>86%</td><td>0%</td><td>0.06</td><td>0.22</td><td>0.50</td><td>0.69</td><td>0.74</td></tr>
-<tr><td><code>rag_fewshot</code></td><td>41.2 [37.3–45.6]</td><td>93%</td><td>0%</td><td>0.10</td><td>0.32</td><td>0.50</td><td>0.70</td><td>0.86</td></tr>
-<tr><td><code>rag_plus_stylecard</code></td><td>40.1 [34.2–45.9]</td><td>83%</td><td>0%</td><td>0.12</td><td>0.30</td><td>0.47</td><td>0.68</td><td>0.78</td></tr>
-<tr><td><strong>human reply (ceiling)</strong></td><td><strong>92.2 [88.7–95.2]</strong></td><td>100%</td><td>83%</td><td>1.00</td><td>0.82</td><td>1.00</td><td>0.83</td><td>0.95</td></tr>
+<tr><td><code>zero_shot</code></td><td>37.5 [34.0–41.1]</td><td>93%</td><td>0%</td><td>0.03</td><td>0.33</td><td>0.48</td><td>0.64</td><td>0.77</td></tr>
+<tr><td><code>static_fewshot</code></td><td>40.3 [36.6–44.2]</td><td>86%</td><td>0%</td><td>0.06</td><td>0.41</td><td>0.50</td><td>0.69</td><td>0.74</td></tr>
+<tr><td><code>rag_fewshot</code></td><td>42.8 [38.6–47.0]</td><td>93%</td><td>0%</td><td>0.10</td><td>0.36</td><td>0.50</td><td>0.70</td><td>0.86</td></tr>
+<tr><td><code>rag_plus_stylecard</code></td><td>43.5 [39.8–47.3]</td><td>90%</td><td>0%</td><td>0.12</td><td>0.36</td><td>0.52</td><td>0.73</td><td>0.84</td></tr>
+<tr><td><strong>human reply (ceiling)</strong></td><td><strong>92.0 [89.0–94.8]</strong></td><td>100%</td><td>86%</td><td>1.00</td><td>0.81</td><td>1.00</td><td>0.83</td><td>0.95</td></tr>
 </table></div>
 
-<p>The best variant (<code>rag_fewshot</code>) reaches <strong>45% of the human ceiling</strong>. The ceiling is 92.2 rather than 100 because the metric charges the human&#x27;s own replies for legitimate variation — quoting that gap is the only way the system score means anything.</p>
+<p>The best variant (<code>rag_plus_stylecard</code>) reaches <strong>47% of the human ceiling</strong>. The ceiling is 92.0 rather than 100 because the metric charges the human&#x27;s own replies for legitimate variation — quoting that gap is the only way the system score means anything.</p>
 
 <h3>Are the gaps real?</h3>
 
-<li><code>rag_fewshot</code> (41.2) vs <code>rag_plus_stylecard</code> (40.1): intervals overlap — <strong>not</strong> a demonstrated difference</li>
-<li><code>rag_plus_stylecard</code> (40.1) vs <code>zero_shot</code> (36.5): intervals overlap — <strong>not</strong> a demonstrated difference</li>
-<li><code>zero_shot</code> (36.5) vs <code>static_fewshot</code> (35.4): intervals overlap — <strong>not</strong> a demonstrated difference</li>
+<li><code>rag_plus_stylecard</code> (43.5) vs <code>rag_fewshot</code> (42.8): intervals overlap — <strong>not</strong> a demonstrated difference</li>
+<li><code>rag_fewshot</code> (42.8) vs <code>static_fewshot</code> (40.3): intervals overlap — <strong>not</strong> a demonstrated difference</li>
+<li><code>static_fewshot</code> (40.3) vs <code>zero_shot</code> (37.5): intervals overlap — <strong>not</strong> a demonstrated difference</li>
 
 <h3>Where it struggles</h3>
 
 <div class="tablewrap"><table>
 <tr><th>Difficulty</th><th>n</th><th>Mean composite</th></tr>
-<tr><td>hard</td><td>9</td><td>43.6</td></tr>
-<tr><td>normal</td><td>20</td><td>40.1</td></tr>
+<tr><td>hard</td><td>9</td><td>44.8</td></tr>
+<tr><td>normal</td><td>20</td><td>41.8</td></tr>
 </table></div>
 
 <div class="tablewrap"><table>
 <tr><th>Category</th><th>n</th><th>Mean composite</th></tr>
-<tr><td>internal</td><td>3</td><td>30.3</td></tr>
 <tr><td>outreach</td><td>3</td><td>34.1</td></tr>
+<tr><td>scheduling</td><td>3</td><td>36.2</td></tr>
 <tr><td>vendor</td><td>3</td><td>36.7</td></tr>
-<tr><td>support</td><td>5</td><td>38.6</td></tr>
-<tr><td>sales</td><td>3</td><td>39.8</td></tr>
-<tr><td>scheduling</td><td>3</td><td>43.3</td></tr>
-<tr><td>recruiting</td><td>3</td><td>46.0</td></tr>
+<tr><td>internal</td><td>3</td><td>37.4</td></tr>
+<tr><td>sales</td><td>3</td><td>42.3</td></tr>
+<tr><td>support</td><td>5</td><td>42.8</td></tr>
 <tr><td>escalation</td><td>3</td><td>49.0</td></tr>
-<tr><td>billing</td><td>3</td><td>54.3</td></tr>
+<tr><td>recruiting</td><td>3</td><td>49.4</td></tr>
+<tr><td>billing</td><td>3</td><td>56.8</td></tr>
 </table></div>
 
 <h3>Five worst responses (<code>rag_fewshot</code>)</h3>
@@ -148,7 +148,7 @@ Operations Manager, Northwind Systems
 
 <h4><code>int-007</code> — 27.0 (sendable)</h4>
 
-<p><em>Missing required fact(s): ops should own the facts not the wording; ops posts a raw factual line; comms rewrites within 15 minutes. Acted as &#x27;provide_information&#x27; where the human &#x27;negotiate_alternative&#x27; (15% credit). Style drifts from ops_mgr (greeting &#x27;hi&#x27; vs expected &#x27;none&#x27;). Asked for information or promised follow-up where the human answered, decided, or acted.</em></p>
+<p><em>Missing required fact(s): ops should own the facts not the wording; ops posts a raw factual line; comms rewrites within 15 minutes. Acted as &#x27;request_information&#x27; where the human &#x27;negotiate_alternative&#x27; (15% credit). Style drifts from ops_mgr (greeting &#x27;hi&#x27; vs expected &#x27;none&#x27;). Asked for information or promised follow-up where the human answered, decided, or acted.</em></p>
 
 
 <pre><code>
@@ -162,31 +162,24 @@ Thanks,
 - Dan
 </code></pre>
 
-<h4><code>int-005</code> — 28.9 (sendable)</h4>
+<h4><code>sch-011</code> — 27.1 (sendable)</h4>
 
-<p><em>Missing required fact(s): what is the budget per machine; is the serial console adapter still supported. Acted as &#x27;provide_information&#x27; where the human &#x27;request_information&#x27; (15% credit). Style drifts from ops_mgr (greeting &#x27;hi&#x27; vs expected &#x27;none&#x27;).</em></p>
+<p><em>Missing required fact(s): we will move; your session has external attendees; shifted us to the small meeting room. Acted as &#x27;request_information&#x27; where the human &#x27;resolve_with_action&#x27; (15% credit). Style drifts from ops_mgr (greeting &#x27;hi&#x27; vs expected &#x27;none&#x27;). Asked for information or promised follow-up where the human answered, decided, or acted.</em></p>
 
 
 <pre><code>
-Hi,
+Hi Carla,
 
-Thanks for the heads‑up on the laptop refresh. To make sure we’re set up for a smooth transition, could you let me know:
+Thanks for flagging the clash. I’ll check our schedule and see if we have an alternate room or a different slot that could work for my team. Could you let me know if your team has any flexibility on that Thursday, or if there’s a preferred alternative time?
 
-- The planned rollout timeline for the ops team
-- Preferred operating system and any baseline image you’ll be using
-- Whether the laptops will include admin rights or if we need to request them
-- Any pre‑installed tools or configurations (e.g., monitoring agents, VPN client, disk encryption) that you plan to provide
-
-Once I have those details I can confirm any special requirements on our end.
-
-Thanks,
+Happy to coordinate a solution that works for both of us.
 
 - Dan
 </code></pre>
 
 <h4><code>rec-002</code> — 30.8 (sendable)</h4>
 
-<p><em>Missing required fact(s): we will not be progressing your application; more hands on experience with industrial network hardware; keep your details on file for twelve months. Acted as &#x27;escalate_or_handoff&#x27; where the human &#x27;decline_politely&#x27; (15% credit). Asked for information or promised follow-up where the human answered, decided, or acted.</em></p>
+<p><em>Missing required fact(s): we will not be progressing your application; more hands on experience with industrial network hardware; keep your details on file for twelve months. Acted as &#x27;acknowledge_and_defer&#x27; where the human &#x27;decline_politely&#x27; (15% credit). Asked for information or promised follow-up where the human answered, decided, or acted.</em></p>
 
 
 <pre><code>

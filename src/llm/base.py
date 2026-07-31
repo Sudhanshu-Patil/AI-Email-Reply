@@ -248,6 +248,15 @@ def extract_json(text: str) -> dict:
     if not text or not text.strip():
         raise OutputParseError("Model returned an empty response.")
 
+    # Reasoning models prepend a <think> block. Strip it before looking for JSON, or the
+    # brace scan locks onto braces inside the reasoning text.
+    text = re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL | re.IGNORECASE)
+    if "<think>" in text.lower():  # unterminated — the block was truncated by max_tokens
+        raise OutputParseError(
+            "Model emitted an unterminated reasoning block and never reached the JSON; "
+            "it likely needs a larger max_tokens or is unsuitable for structured output."
+        )
+
     candidates: list[str] = [text.strip()]
 
     for m in _FENCE.finditer(text):

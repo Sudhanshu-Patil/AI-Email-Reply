@@ -61,8 +61,15 @@ class _OpenAICompatClient(BaseClient):
             resp = self._client().chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001
             err = _classify(exc)
-            # Not every hosted model supports JSON mode; drop it and let the prompt carry it.
-            if json_mode and isinstance(err, BadRequestError) and "response_format" in str(exc):
+            # Not every hosted model can satisfy response_format. Groq reports this as
+            # "Failed to validate JSON" / json_validate_failed rather than naming the
+            # parameter, so matching on "response_format" alone missed it entirely and
+            # every call to such a model failed. Drop the constraint and let the prompt
+            # carry the requirement instead.
+            low = str(exc).lower()
+            unsupported = ("response_format" in low or "failed to validate json" in low
+                           or "json_validate_failed" in low)
+            if json_mode and isinstance(err, BadRequestError) and unsupported:
                 kwargs.pop("response_format", None)
                 resp = self._client().chat.completions.create(**kwargs)
             else:

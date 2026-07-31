@@ -75,6 +75,7 @@ def run_all(
     use_llm_intent: bool = True,
     judge_samples: int = 3,
     progress: bool = True,
+    intent_client: BaseClient | None = None,
 ) -> dict:
     from ..retrieval import Retriever
     from .judge import Judge, JudgeConfig
@@ -95,8 +96,8 @@ def run_all(
                   f"generator ({client.model}). Self-preference bias is likely; the report "
                   f"records this.")
 
-    scorer = build_scorer(train, judge=judge,
-                          intent_client=judge_client or client,
+    intent_client = intent_client or judge_client or client
+    scorer = build_scorer(train, judge=judge, intent_client=intent_client,
                           use_llm_intent=use_llm_intent)
 
     started = time.time()
@@ -107,6 +108,9 @@ def run_all(
                    "samples": judge_samples,
                    "same_family_as_generator": judge.same_family_as_generator}
                   if judge_client else None),
+        "intent_classifier": ({"provider": intent_client.name, "model": intent_client.model}
+                              if use_llm_intent and intent_client else
+                              {"provider": "offline", "model": "cue-phrases + centroid"}),
         "embedding_backend": scorer.embedder.backend,
         "n_test": len(test),
         "variants": {},
@@ -137,6 +141,22 @@ def run_all(
     run["gold_ceiling"] = gold_baseline(scorer, test)
     print(f"  gold: composite {run['gold_ceiling']['ci']['mean']:.1f}  "
           f"sendable {run['gold_ceiling']['sendable_rate']:.0%}")
+
+    # Report the classifier that actually ran, not the one that was requested. A model
+    # that fails every call would otherwise leave the run claiming it was used.
+    from collections import Counter
+
+    methods = Counter(r["intent_detail"]["method"] for r in run["responses"])
+    run["intent_classifier"]["methods_used"] = dict(methods)
+    run["intent_classifier"].update(scorer.intent_classifier.stats())
+    if use_llm_intent and not methods.get("llm"):
+        run["intent_classifier"]["warning"] = (
+            "No reply was classified by the LLM — every call failed and the offline "
+            "classifier was used instead. Intent scores are correspondingly weaker."
+        )
+        print(f"  [warn] intent: 0/{sum(methods.values())} classified by "
+              f"{intent_client.model}; fell back to offline cues. "
+              f"{scorer.intent_classifier.failure_reasons[:1]}")
 
     run["elapsed_s"] = round(time.time() - started, 1)
     run["client_stats"] = client.stats()

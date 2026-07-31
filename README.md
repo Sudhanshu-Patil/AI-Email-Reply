@@ -139,20 +139,30 @@ by the number it is meant to validate (`python cli.py export-ratings`).
 
 | | Spearman ρ vs human rating |
 |---|---:|
-| **Composite** | **0.298** (95% CI −0.12 to 0.63) |
+| **Composite** | **0.257** (95% CI −0.16 to 0.60) |
 | grounding | **+0.509** |
 | style | +0.296 |
 | similarity | +0.169 |
-| intent | +0.165 |
+| intent | +0.073 |
 | sendability | −0.177 |
 
 **This is a weak result and I am not going to dress it up.** The composite's confidence
 interval crosses zero: at n=24 this does not demonstrate that the composite tracks human
-judgement. Three things are worth saying about it.
+judgement. Four things are worth saying about it.
 
-**The component structure behaves as designed.** Grounding — the heaviest-weighted
-component, and the one I argued matters most — is comfortably the best predictor of whether
-I would send a draft. That is the metric's central design claim, and it survives.
+**The component structure behaves as designed — in one respect.** Grounding, the
+heaviest-weighted component and the one I argued matters most, is comfortably the best
+predictor of whether I would send a draft. That is the metric's central design claim, and
+it survives.
+
+**Intent is a much weaker predictor than its 25% weight assumes** (ρ = +0.073). Notably it
+got *weaker* when I fixed the classifier: an earlier run scored +0.165 while silently
+falling back to a 20.7%-accurate offline classifier, and replacing that with a real LLM
+classifier (116/116, zero fallbacks) dropped it to +0.073. So the earlier, higher number
+was partly noise. The substantive reading is that drafts frequently get the *action* right
+— they decline when the human declined — and still fail on what they actually say. Knowing
+a reply declined is not much evidence that it declined *well*. On this data the weighting
+looks wrong, but see the note below on why I have not rebalanced it.
 
 **`sendability` anti-correlates, and chasing that was a mistake worth recording.** I made
 three attempts to fix it against these same 24 labels — removing a nonsensical
@@ -200,15 +210,19 @@ scored by the rule-based metric alone, and the judge runs separately on the main
 python cli.py judge-agreement --variant rag_fewshot
 ```
 
-**Result** (`llama-3.1-8b-instant` judging `openai/gpt-oss-120b`, 29 responses):
-Spearman ρ vs composite = **0.281** (95% CI −0.09 to 0.59), judge mean sendability
-**2.76/5**, faithfulness 3.55/5, unsupported commitments flagged in 18/29 responses.
+**Result** (`llama-3.1-8b-instant` judging `openai/gpt-oss-120b`, 29 responses, 3 samples
+each): Spearman ρ vs composite = **0.339**, judge mean sendability **2.76/5**, unsupported
+commitments flagged in 12/29 responses, mean self-consistency **0.724**.
 
-The judge's ρ (0.281) and my own (0.265) land in almost the same place, from two raters
-sharing no machinery — and the judge's mean rating (2.76/5) is close to mine (2.33/5). Two
-independent assessors agreeing both about the *level* and about how loosely it tracks the
-composite is more informative than either number alone: it says the weak correlation is a
-property of the metric, not of one idiosyncratic rater.
+The judge's ρ (0.339) and my own (0.257) land in a similar place from two raters sharing no
+machinery, and the judge's mean rating (2.76/5) is close to mine (2.33/5). Two independent
+assessors agreeing both about the *level* and about how loosely it tracks the composite is
+more informative than either number alone: it says the weak correlation is a property of
+the metric, not of one idiosyncratic rater.
+
+Self-consistency of 0.724 is itself a finding — the judge disagrees with itself across
+samples often enough that single-sample judging would be noticeably noisy, which is exactly
+why the median of three is taken and the spread is reported per item.
 
 Judge biases are handled structurally rather than assumed away:
 
@@ -232,19 +246,23 @@ Judge biases are handled structurally rather than assumed away:
 
 29 held-out emails, generated with `openai/gpt-oss-120b` on Groq:
 
+29 held-out emails, generated with `openai/gpt-oss-120b`, intent classified by
+`llama-3.3-70b-versatile` (116/116, zero fallbacks):
+
 | Variant | Composite (95% CI) | Sendable | Edit-free | Grounding |
 |---|---:|---:|---:|---:|
-| `zero_shot` | 36.5 [33.1–40.4] | 93% | 0% | 0.03 |
-| `static_fewshot` | 35.4 [32.6–38.3] | 86% | 0% | 0.06 |
-| **`rag_fewshot`** | **41.2 [37.3–45.6]** | 93% | 0% | 0.10 |
-| `rag_plus_stylecard` | 40.1 [34.2–45.9] | 83% | 0% | 0.12 |
-| **human reply (ceiling)** | **92.2 [88.7–95.1]** | 100% | 100% | 1.00 |
+| `zero_shot` | 37.5 [34.0–41.1] | 93% | 0% | 0.03 |
+| `static_fewshot` | 40.3 [36.6–44.2] | 86% | 0% | 0.06 |
+| `rag_fewshot` | 42.8 [38.6–47.0] | 93% | 0% | 0.10 |
+| **`rag_plus_stylecard`** | **43.5 [39.8–47.3]** | 90% | 0% | 0.12 |
+| **human reply (ceiling)** | **92.0 [88.5–94.9]** | 100% | 100% | 1.00 |
 
-Retrieval ranks top, as predicted. **But every interval overlaps its neighbour, so the
-ablation has not demonstrated a real difference** — 29 items is too few to separate 35 from
-41. The report states this per adjacent pair rather than presenting a leaderboard.
+The two retrieval variants rank top, as predicted. **But every interval overlaps its
+neighbour, so the ablation has not demonstrated a real difference** — 29 items is too few
+to separate 37 from 44. The report states this per adjacent pair rather than presenting a
+leaderboard.
 
-The honest headline: the best variant reaches **45% of the human ceiling**, and
+The honest headline: the best variant reaches **47% of the human ceiling**, and
 **0% of drafts were sendable without edits**. Grounding at 0.10 means the drafts state
 roughly one in ten of the facts they owe. Reading them (the worst-five section of
 `reports/report.md`) shows why: they are fluent and plausible, and they systematically ask
@@ -282,10 +300,27 @@ So the real scale is roughly 34 → 92, not 0 → 100.
   across a clause boundary and 15 tokens; the rule misses it. The optional LLM verifier
   tier is the backstop, and every constraint records which tier decided it.
 - **The offline intent classifier is cue-based** and was written against the training
-  split. Held-out accuracy is **75.9%** (chance 11.1%), mean credit 0.82. It replaced
+  split. Held-out accuracy is **75.9%** on *human* gold replies (chance 11.1%). It replaced
   embedding centroids, which managed only 20.7% — sentence embeddings encode what an email
-  is *about*, and every reply in a category is about the same thing. When an API key is
-  present an LLM classifier is used instead.
+  is *about*, and every reply in a category is about the same thing.
+
+  **That 75.9% does not transfer to generated replies.** The cue patterns were written
+  against terse human prose; on verbose LLM drafts they fire only ~28% of the time and the
+  rest fall through to the 20.7% centroid. Any run made with `--no-llm-intent` has a
+  correspondingly noisy intent component, and the committed run therefore uses a real LLM
+  classifier (`llama-3.3-70b-versatile`, 116/116 classified, zero fallbacks).
+
+- **A silent fallback once made a report assert something false.** An earlier run was
+  configured to classify intent with `qwen/qwen3.6-27b`; every call failed (that model
+  400s on `response_format`, and as a reasoning model it emits a `<think>` block that
+  exhausted the token budget before any JSON). The classifier caught the exception, fell
+  back to offline cues, and the run metadata still recorded "classified by qwen". The run
+  looked completely normal. Three things changed as a result: the JSON-mode fallback now
+  recognises Groq's actual error text, `extract_json` strips or explicitly rejects
+  reasoning blocks, and **every run now reports the method distribution that actually
+  occurred** (`intent_classifier.methods_used`) plus a loud warning when zero replies were
+  classified by the model that was requested. A metric that cannot be trusted to say what
+  it did is worse than one that scores badly.
 - **Judge and generator share a provider.** With only a Groq key available, the judge
   defaults to a different model *family* (`llama-3.3-70b-versatile` judging
   `openai/gpt-oss-120b`). That is weaker than cross-provider judging. The report records

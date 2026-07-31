@@ -224,8 +224,27 @@ class IntentClassifier:
         self.client = client
         self.embedder = embedder
         self._centroids: dict[str, list[float]] = {}
+        self.llm_ok = 0
+        self.llm_failures = 0
+        self.failure_reasons: list[str] = []
         if train_records and embedder is not None:
             self._fit_centroids(train_records)
+
+    def _record_failure(self, reason: str) -> None:
+        from ..llm.keys import redact
+
+        reason = redact(reason)[:200]
+        if reason not in self.failure_reasons and len(self.failure_reasons) < 5:
+            self.failure_reasons.append(reason)
+
+    def stats(self) -> dict:
+        total = self.llm_ok + self.llm_failures
+        return {
+            "llm_classified": self.llm_ok,
+            "llm_failed": self.llm_failures,
+            "llm_success_rate": round(self.llm_ok / total, 4) if total else None,
+            "failure_reasons": self.failure_reasons,
+        }
 
     def _fit_centroids(self, train_records: list[dict]) -> None:
         import numpy as np
@@ -266,10 +285,18 @@ class IntentClassifier:
                 )
                 label = str(payload.get("intent", "")).strip()
                 if label in INTENT_FAMILIES:
+                    self.llm_ok += 1
                     return (label, "llm", float(payload.get("confidence", 0.5) or 0.5),
                             str(payload.get("reason", ""))[:120])
-            except (LLMError, ValueError, json.JSONDecodeError):
-                pass  # fall through to the offline classifier
+                self.llm_failures += 1
+                self._record_failure(f"model returned unknown label {label!r}")
+            except (LLMError, ValueError, json.JSONDecodeError) as exc:
+                # Falling back silently once hid a total failure: a model that 400s on
+                # every call left the run reporting "classified by <model>" while nothing
+                # had actually been classified by it. Failures are counted and surfaced so
+                # the report can state what was really used.
+                self.llm_failures += 1
+                self._record_failure(f"{type(exc).__name__}: {exc}")
 
         label, conf = classify_by_cues(reply_body)
         if label:

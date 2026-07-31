@@ -3,17 +3,17 @@
   "judge_model": "llama-3.1-8b-instant",
   "generator_model": "openai/gpt-oss-120b",
   "same_family_as_generator": false,
-  "samples_per_response": 1,
+  "samples_per_response": 3,
   "n_judged": 29,
   "n_failed": 0,
-  "mean_judge_sendability": 2.759,
-  "mean_judge_faithfulness": 3.552,
-  "mean_self_consistency": 1.0,
-  "responses_with_hallucinations": 18,
+  "mean_judge_sendability": 3.241,
+  "mean_judge_faithfulness": 3.621,
+  "mean_self_consistency": 0.724,
+  "responses_with_hallucinations": 12,
   "findings": [
     {
       "record_id": "bil-004",
-      "composite": 40.3,
+      "composite": 61.55,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
@@ -21,25 +21,29 @@
       "reason": "The draft accurately reflects the human's reply and is a direct copy.",
       "self_consistency": 1.0,
       "samples": [
+        5,
+        5,
         5
       ]
     },
     {
       "record_id": "bil-008",
-      "composite": 39.94,
+      "composite": 51.19,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
       "hallucinated_commitments": [],
       "reason": "Draft accurately conveys the human's position and intentions.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
+        5,
+        4,
         5
       ]
     },
     {
       "record_id": "bil-012",
-      "composite": 82.64,
+      "composite": 57.64,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 4,
@@ -50,12 +54,14 @@
       "reason": "The draft introduces alternative dates and a revised payment plan process not agreed upon by the human.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
     {
       "record_id": "esc-003",
-      "composite": 52.77,
+      "composite": 59.52,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 4,
@@ -66,12 +72,14 @@
       "reason": "The draft invents a target resolution timeline and a priority level, which are not supported by the human reply.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
     {
       "record_id": "esc-004",
-      "composite": 40.02,
+      "composite": 34.77,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 2,
@@ -79,6 +87,8 @@
       "reason": "The draft does not match the human's tone and directness.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
@@ -90,68 +100,74 @@
       "judge_faithfulness": 5,
       "hallucinated_commitments": [],
       "reason": "The draft is a faithful representation of the human's reply and is suitable to send as-is.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.057,
       "samples": [
-        5
+        5,
+        5,
+        1
       ]
     },
     {
       "record_id": "int-005",
-      "composite": 28.86,
+      "composite": 50.11,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
       "hallucinated_commitments": [],
       "reason": "The draft accurately reflects the human's response and is suitable to send as-is.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.057,
       "samples": [
+        5,
+        1,
         5
       ]
     },
     {
       "record_id": "int-007",
-      "composite": 32.28,
+      "composite": 27.03,
       "sendable": true,
-      "judge_sendability": 3,
+      "judge_sendability": 4,
       "judge_faithfulness": 4,
-      "hallucinated_commitments": [
-        "we'll need a clear template and a quick review step (e.g., product sign-off) before publishing, especially for any non-technical wording."
-      ],
+      "hallucinated_commitments": [],
       "reason": "Draft adds a requirement not present in the human reply, and slightly alters the original agreement.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.592,
       "samples": [
-        3
+        3,
+        5,
+        4
       ]
     },
     {
       "record_id": "int-009",
       "composite": 35.14,
       "sendable": true,
-      "judge_sendability": 2,
-      "judge_faithfulness": 4,
-      "hallucinated_commitments": [
-        "I’ll get back to you with a clear answer and any alternative wording we can offer by end of day tomorrow"
-      ],
+      "judge_sendability": 5,
+      "judge_faithfulness": 5,
+      "hallucinated_commitments": [],
       "reason": "Draft contradicts human's decision not to commit to 99.99% SLA and introduces a new timeline.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.293,
       "samples": [
-        2
+        2,
+        5,
+        5
       ]
     },
     {
       "record_id": "out-003",
-      "composite": 37.02,
+      "composite": 31.77,
       "sendable": true,
-      "judge_sendability": 1,
+      "judge_sendability": 3,
       "judge_faithfulness": 4,
       "hallucinated_commitments": [
         "Confirmation that the 18 April deadline aligns with your publishing schedule.",
         "Whether there is any compensation or credit arrangement for contributors."
       ],
       "reason": "The draft introduces new questions not present in the human reply, and the tone is more cautious than necessary.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.376,
       "samples": [
-        1
+        1,
+        4,
+        3
       ]
     },
     {
@@ -160,49 +176,48 @@
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 2,
-      "hallucinated_commitments": [
-        "I’ll get back to you within the week"
-      ],
+      "hallucinated_commitments": [],
       "reason": "The draft introduces an unnecessary condition about checking the on-call schedule.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
-        2
-      ]
-    },
-    {
-      "record_id": "out-008",
-      "composite": 39.56,
-      "sendable": true,
-      "judge_sendability": 2,
-      "judge_faithfulness": 4,
-      "hallucinated_commitments": [
-        "I'm happy to consider whether any of my team members might be open to new opportunities,"
-      ],
-      "reason": "The draft contradicts the human's explicit statement that they won't pass on team members' names.",
-      "self_consistency": 1.0,
-      "samples": [
-        2
-      ]
-    },
-    {
-      "record_id": "rec-002",
-      "composite": 36.05,
-      "sendable": true,
-      "judge_sendability": 1,
-      "judge_faithfulness": 2,
-      "hallucinated_commitments": [
-        "I have forwarded your enquiry to the recruitment team",
-        "You can expect an update from me by the end of next week (within five business days)"
-      ],
-      "reason": "The draft contradicts the human's decision to inform Patience of the outcome directly.",
-      "self_consistency": 1.0,
-      "samples": [
+        2,
+        2,
         1
       ]
     },
     {
+      "record_id": "out-008",
+      "composite": 34.31,
+      "sendable": true,
+      "judge_sendability": 5,
+      "judge_faithfulness": 5,
+      "hallucinated_commitments": [],
+      "reason": "The draft contradicts the human's explicit statement that they won't pass on team members' names.",
+      "self_consistency": 0.293,
+      "samples": [
+        2,
+        5,
+        5
+      ]
+    },
+    {
+      "record_id": "rec-002",
+      "composite": 30.8,
+      "sendable": true,
+      "judge_sendability": 1,
+      "judge_faithfulness": 2,
+      "hallucinated_commitments": [],
+      "reason": "The draft contradicts the human's decision to inform Patience of the outcome directly.",
+      "self_consistency": 0.764,
+      "samples": [
+        1,
+        1,
+        2
+      ]
+    },
+    {
       "record_id": "rec-003",
-      "composite": 57.63,
+      "composite": 52.38,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 4,
@@ -212,12 +227,14 @@
       "reason": "Draft contradicts the human reply on remote work arrangement.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
     {
       "record_id": "rec-006",
-      "composite": 54.88,
+      "composite": 64.88,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
@@ -225,19 +242,23 @@
       "reason": "The draft is identical in content and tone to the human's reply.",
       "self_consistency": 1.0,
       "samples": [
+        5,
+        5,
         5
       ]
     },
     {
       "record_id": "sal-007",
-      "composite": 37.34,
+      "composite": 48.59,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
       "hallucinated_commitments": [],
       "reason": "The draft accurately reflects the human's decision to not commit to a timeline and to gather more information from the recipient.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
+        5,
+        4,
         5
       ]
     },
@@ -246,19 +267,21 @@
       "composite": 40.0,
       "sendable": false,
       "judge_sendability": 2,
-      "judge_faithfulness": 3,
+      "judge_faithfulness": 2,
       "hallucinated_commitments": [
         "activation within an hour is not feasible without the standard order and payment verification steps"
       ],
       "reason": "The draft contradicts the human's clear statement that activation within an hour is not feasible.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
     {
       "record_id": "sal-009",
-      "composite": 42.07,
+      "composite": 38.32,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 2,
@@ -268,6 +291,8 @@
       "reason": "The draft contradicts the human's reply by implying an additional charge for extending the validity.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
@@ -282,14 +307,16 @@
         "the usual prep includes reviewing the onboarding packet we sent earlier"
       ],
       "reason": "The draft contradicts the human's clear and direct response.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
+        1,
+        2,
         1
       ]
     },
     {
       "record_id": "sch-011",
-      "composite": 43.64,
+      "composite": 27.14,
       "sendable": true,
       "judge_sendability": 5,
       "judge_faithfulness": 5,
@@ -297,50 +324,57 @@
       "reason": "Draft accurately conveys the human's intention and decision.",
       "self_consistency": 1.0,
       "samples": [
+        5,
+        5,
         5
       ]
     },
     {
       "record_id": "sch-012",
-      "composite": 52.05,
+      "composite": 48.8,
       "sendable": true,
       "judge_sendability": 4,
       "judge_faithfulness": 4,
       "hallucinated_commitments": [],
       "reason": "Minor edit needed to match the human's tone and request for clarification.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
+        4,
+        5,
         4
       ]
     },
     {
       "record_id": "sup-001",
-      "composite": 38.15,
+      "composite": 32.9,
       "sendable": true,
       "judge_sendability": 1,
       "judge_faithfulness": 2,
       "hallucinated_commitments": [
-        "I’ve opened a ticket for this issue and will have our integrations team look into it right away.",
         "Once we have this information we’ll be able to pinpoint the cause and get the sync back up before your Friday close."
       ],
       "reason": "The draft contradicts the human's reply by not having already opened a ticket and not promising to resolve the issue by Friday close.",
       "self_consistency": 1.0,
       "samples": [
+        1,
+        1,
         1
       ]
     },
     {
       "record_id": "sup-004",
-      "composite": 45.07,
+      "composite": 39.82,
       "sendable": true,
       "judge_sendability": 2,
       "judge_faithfulness": 2,
       "hallucinated_commitments": [
-        "We'll work with you to clean up the duplicates and put safeguards in place to prevent a recurrence."
+        "we'll work with you to clean up the duplicates and put safeguards in place to prevent a recurrence."
       ],
       "reason": "The draft adds a promise to put safeguards in place, which is not supported by the human reply.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
@@ -351,25 +385,28 @@
       "judge_sendability": 2,
       "judge_faithfulness": 2,
       "hallucinated_commitments": [
-        "A copy of a recent invoice or contract that includes your company name and the email address associated with the Relay account.",
         "A signed request on company letterhead from a current executive (e.g., CEO, CFO, or another authorized officer) confirming you need admin access, and the compan"
       ],
       "reason": "The draft requests unnecessary documentation and implies a more complex process than the human reply.",
       "self_consistency": 1.0,
       "samples": [
+        2,
+        2,
         2
       ]
     },
     {
       "record_id": "sup-007",
-      "composite": 49.8,
+      "composite": 65.8,
       "sendable": true,
       "judge_sendability": 4,
       "judge_faithfulness": 4,
       "hallucinated_commitments": [],
       "reason": "Draft is accurate but slightly more detailed than the human reply.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
+        4,
+        5,
         4
       ]
     },
@@ -377,13 +414,15 @@
       "record_id": "sup-018",
       "composite": 40.0,
       "sendable": false,
-      "judge_sendability": 4,
-      "judge_faithfulness": 4,
+      "judge_sendability": 5,
+      "judge_faithfulness": 5,
       "hallucinated_commitments": [],
       "reason": "The draft is mostly faithful, but the human's reply explicitly states they're not the right person to confirm the scope of a hold or to name a custodian of records.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.764,
       "samples": [
-        4
+        4,
+        5,
+        5
       ]
     },
     {
@@ -398,22 +437,24 @@
       "reason": "The draft contradicts the human's reply, which explicitly states 18% doesn't work.",
       "self_consistency": 1.0,
       "samples": [
+        1,
+        1,
         1
       ]
     },
     {
       "record_id": "ven-007",
-      "composite": 41.47,
+      "composite": 36.22,
       "sendable": true,
-      "judge_sendability": 1,
+      "judge_sendability": 5,
       "judge_faithfulness": 4,
-      "hallucinated_commitments": [
-        "We’ll aim to have a replacement carrier in place well before the 30‑day deadline."
-      ],
+      "hallucinated_commitments": [],
       "reason": "The draft contradicts the human's statement of 'No hard feelings, but I'd have liked more than 30 days'.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.057,
       "samples": [
-        1
+        1,
+        5,
+        5
       ]
     },
     {
@@ -426,30 +467,32 @@
         "Could you let us know the compliance deadline and any details on the true‑up process should we need to adjust the license?"
       ],
       "reason": "The draft introduces uncertainty and requests information not provided by the human reply.",
-      "self_consistency": 1.0,
+      "self_consistency": 0.15,
       "samples": [
-        2
+        2,
+        1,
+        5
       ]
     }
   ],
   "judge_stats": {
     "provider": "groq",
     "model": "llama-3.1-8b-instant",
-    "calls": 29,
-    "cache_hits": 0,
-    "retries": 25,
-    "prompt_tokens": 22171,
-    "completion_tokens": 2603
+    "calls": 58,
+    "cache_hits": 29,
+    "retries": 54,
+    "prompt_tokens": 44342,
+    "completion_tokens": 5115
   },
   "correlation_with_composite": {
     "n": 29,
-    "spearman_rho": 0.2814,
-    "kendall_tau_b": 0.2119,
-    "pearson_r": 0.1239,
+    "spearman_rho": 0.3392,
+    "kendall_tau_b": 0.2653,
+    "pearson_r": 0.301,
     "spearman_95ci": [
-      -0.0949,
-      0.5874
+      -0.0312,
+      0.6277
     ]
   },
-  "sendable_flag_vs_judge": -0.0598
+  "sendable_flag_vs_judge": -0.0599
 }
