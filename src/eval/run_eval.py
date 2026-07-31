@@ -53,6 +53,36 @@ def run_variant(
     return scores, suggestions
 
 
+def stratified_subset(test: list[dict], limit: int, seed: int = 20250329) -> list[dict]:
+    """Pick ``limit`` test items spread across category and difficulty.
+
+    The test split is stored in id order, so a plain ``test[:limit]`` silently returns an
+    alphabetical slice — billing, escalation, internal — and reports a "held-out score"
+    measured on three categories. Round-robin across buckets instead, and always keep the
+    hard cases represented, since those are the ones that discriminate.
+    """
+    import random
+    from collections import defaultdict
+
+    buckets: dict[tuple[str, str], list[dict]] = defaultdict(list)
+    for rec in test:
+        buckets[(rec["category"], rec["difficulty"])].append(rec)
+
+    rng = random.Random(seed)
+    for rows in buckets.values():
+        rng.shuffle(rows)
+
+    keys = sorted(buckets)
+    picked: list[dict] = []
+    i = 0
+    while len(picked) < limit and any(buckets[k] for k in keys):
+        rows = buckets[keys[i % len(keys)]]
+        if rows:
+            picked.append(rows.pop())
+        i += 1
+    return sorted(picked, key=lambda r: r["id"])
+
+
 def gold_baseline(scorer: Scorer, records: list[dict]) -> dict:
     """Score the human replies under our own metric — the practical ceiling.
 
@@ -81,8 +111,8 @@ def run_all(
     from .judge import Judge, JudgeConfig
 
     records, train, test = load_all()
-    if limit:
-        test = test[:limit]
+    if limit and limit < len(test):
+        test = stratified_subset(test, limit)
 
     retriever = Retriever(train)
     generator = ReplyGenerator(client, retriever)

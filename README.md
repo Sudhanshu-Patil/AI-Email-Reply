@@ -224,6 +224,38 @@ Self-consistency of 0.724 is itself a finding — the judge disagrees with itsel
 samples often enough that single-sample judging would be noticeably noisy, which is exactly
 why the median of three is taken and the spread is reported per item.
 
+### What happens when the judge goes *inside* the composite
+
+Running the judge across all four variants (16 stratified held-out emails, so the same
+instrument is applied to everything compared — `reports/judged_run.json`):
+
+| Variant | Composite | Sendable — rules only | Sendable — **with judge** |
+|---|---:|---:|---:|
+| `zero_shot` | 35.0 | 93% | **69%** |
+| `static_fewshot` | 37.7 | 86% | **44%** |
+| `rag_fewshot` | 37.0 | 93% | **31%** |
+| `rag_plus_stylecard` | 41.5 | 90% | **56%** |
+| **human reply** | 90.9 | 100% | **100%** |
+
+**The rule-based metric on its own substantially overstates safety.** Rules catch
+placeholders, fabricated identifiers and forbidden phrasings — 7 hard fails here. The judge
+caught 38 more, all unsupported commitments that no rule could detect. The most important
+one is on the payment-fraud email (`sal-008`), where the human refused to proceed without
+verification and the draft promised licence activation "within the next business day".
+
+That the **human replies stay at 100% sendable** is what makes this credible: the judge is
+discriminating, not simply flagging everything it reads.
+
+**Caveat, measured rather than asserted.** This run used `samples=1` for quota reasons,
+which makes the majority-vote guard inert — with one sample, any single flag trips the
+gate. I re-judged 10 flagged responses at 3 samples: **7 of 10 flags survived the majority
+vote**, and the three that cleared had visibly lower self-consistency (0.53–0.76) than the
+survivors (mostly 1.0). So roughly **30% of the judge hard fails above are noise**, the
+sendable rates are a lower bound, and the self-consistency signal is doing its job. The
+headline ablation (§ above, 29 emails) therefore keeps the judge out and reports the
+rule-based numbers, which are the cleaner instrument even though they are the more
+flattering one.
+
 Judge biases are handled structurally rather than assumed away:
 
 - **Self-preference** — the judge defaults to a different model *family* than the generator

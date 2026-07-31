@@ -216,3 +216,34 @@ class TestStats:
         from src.eval.stats import kendall_tau_b
 
         assert -1.0 <= kendall_tau_b([1, 1, 2, 2], [1, 2, 2, 3]) <= 1.0
+
+
+class TestStratifiedSubset:
+    def test_limit_does_not_bias_toward_alphabetical_categories(self):
+        """`test[:n]` returns an alphabetical slice and silently narrows the eval."""
+        from collections import Counter
+
+        from src.eval.harness import load_all
+        from src.eval.run_eval import stratified_subset
+
+        _, _, test = load_all()
+        naive = Counter(r["category"] for r in test[:16])
+        strat = Counter(r["category"] for r in stratified_subset(test, 16))
+        assert len(strat) > len(naive), "stratified subset must widen category coverage"
+        assert max(strat.values()) - min(strat.values()) <= 1, "buckets must stay balanced"
+
+    def test_hard_cases_are_retained(self):
+        from src.eval.harness import load_all
+        from src.eval.run_eval import stratified_subset
+
+        _, _, test = load_all()
+        picked = stratified_subset(test, 16)
+        assert sum(r["difficulty"] == "hard" for r in picked) >= 5
+
+    def test_deterministic(self):
+        from src.eval.harness import load_all
+        from src.eval.run_eval import stratified_subset
+
+        _, _, test = load_all()
+        assert ([r["id"] for r in stratified_subset(test, 12)]
+                == [r["id"] for r in stratified_subset(test, 12)])
