@@ -17,3 +17,5 @@ streamlit>=1.40
 
 # Tests
 pytest>=8.0
+google-auth-oauthlib>=1.2  # Gmail integration (optional)
+google-api-python-client>=2.100

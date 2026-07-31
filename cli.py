@@ -245,6 +245,135 @@ def cmd_validate_metric(args) -> int:
     return 0
 
 
+def cmd_gmail_mine(args) -> int:
+    """Build a retrieval corpus from your own sent replies."""
+    import json as _json
+
+    from src.integrations.gmail import get_service, mine_history, profile_email
+
+    service = get_service()
+    print(f"Authorised as {profile_email(service)}")
+    print(f"Mining up to {args.max_threads} threads for (incoming, your reply) pairs...")
+    records = mine_history(service, max_threads=args.max_threads)
+
+    out = Path(args.out)
+    out.parent.mkdir(parents=True, exist_ok=True)
+    with out.open("w", encoding="utf-8") as fh:
+        for rec in records:
+            fh.write(_json.dumps(rec, ensure_ascii=False) + "\n")
+
+    print(f"\n{len(records)} reply pairs -> {out}")
+    if records:
+        words = sum(len(r["gold_reply"]["body"].split()) for r in records) / len(records)
+        print(f"Mean reply length: {words:.0f} words")
+    print("\nThese carry no must_include/must_not_include constraints — those cannot be")
+    print("derived automatically, so offline scoring on this corpus runs on intent,")
+    print("similarity, style and sendability. Grounding needs annotation.")
+    return 0
+
+
+def cmd_gmail_draft(args) -> int:
+    """Draft replies to unread mail, grounded in your own past replies."""
+    import json as _json
+
+    from src.generate import ReplyGenerator
+    from src.integrations.gmail import (create_draft, fetch_needing_reply, get_service,
+                                        inference_time_checks, profile_email)
+    from src.retrieval import Retriever
+
+    corpus_path = Path(args.corpus)
+    if not corpus_path.exists():
+        print(f"No corpus at {corpus_path}. Run `python cli.py gmail-mine` first.")
+        return 1
+    with corpus_path.open(encoding="utf-8") as fh:
+        pool = [_json.loads(line) for line in fh if line.strip()]
+    if not pool:
+        print(f"{corpus_path} is empty.")
+        return 1
+
+    service = get_service()
+    print(f"Authorised as {profile_email(service)} · corpus of {len(pool)} past replies")
+
+    messages = fetch_needing_reply(service, query=args.query, limit=args.limit)
+    if not messages:
+        print(f"Nothing matched: {args.query!r}")
+        return 0
+    print(f"{len(messages)} message(s) to draft for\n")
+
+    retriever = Retriever(pool)
+    generator = None
+    if not args.dry_run:
+        generator = ReplyGenerator(make_client(args), retriever)
+
+    from data.schema import PERSONAS
+    from src.eval.style import StyleProfile
+
+    # Voice is learned from your own replies rather than a fictional persona.
+    profile = StyleProfile.fit("self", [r["gold_reply"]["body"] for r in pool], "")
+    personas = dict(PERSONAS)
+    personas["self"] = _self_persona(profile, profile_email(service))
+
+    created = 0
+    for msg in messages:
+        print("=" * 70)
+        print(f"From   : {msg.sender}")
+        print(f"Subject: {msg.subject}")
+        hits = retriever.retrieve({"subject": msg.subject, "body": msg.body}, k=3)
+        print(f"Similar past replies: {', '.join(h.id for h in hits) or '(none)'}")
+
+        if args.dry_run:
+            print("[dry run] no LLM call, no draft created\n")
+            continue
+
+        generator.personas = personas
+        s = generator.generate(
+            {"from": msg.sender, "subject": msg.subject, "body": msg.body},
+            persona_key="self", variant=args.variant,
+        )
+        if s.error:
+            print(f"generation failed: {s.error}\n")
+            continue
+
+        checks = inference_time_checks(s.body, msg, [h.record for h in hits])
+        print(f"\n{s.body[:600]}\n")
+        print(f"confidence {s.confidence:.2f} · needs review: {s.needs_human_review}")
+        flags = []
+        if checks["placeholders"]:
+            flags.append(f"placeholders {checks['placeholders']}")
+        if checks["invented_identifiers"]:
+            flags.append(f"unsourced refs {checks['invented_identifiers']}")
+        if checks["overpromises"]:
+            flags.append(f"over-promising {checks['overpromises']}")
+        print("checks: " + ("; ".join(flags) if flags else "clean")
+              + f" · defers={checks['defers']} commits={checks['commits']}")
+
+        if checks["blocking"] and not args.force:
+            print("NOT DRAFTED — blocking check failed. Use --force to draft anyway.\n")
+            continue
+        draft = create_draft(service, msg, s.subject or msg.subject, s.body)
+        created += 1
+        print(f"draft created: id={draft.get('id')} (in thread, not sent)\n")
+
+    print(f"{created} draft(s) created. Nothing was sent — review them in Gmail.")
+    return 0
+
+
+def _self_persona(profile, email_address: str):
+    from data.schema import Persona
+
+    return Persona(
+        key="self", name=email_address or "you", role="the account owner",
+        company="your organisation",
+        style_card=(
+            f"Match the sender's own habits: about {profile.means['word_count']:.0f} words, "
+            f"{profile.means['mean_sentence_words']:.0f} words per sentence, "
+            f"greeting style '{profile.modal_greeting}'. Mirror the voice of the past "
+            f"replies shown, including how they open and sign off."
+        ),
+        signoff="",
+    )
+
+
 def cmd_judge_agreement(args) -> int:
     from src.eval.judge_agreement import run_agreement, save
     from src.eval.run_eval import REPORTS_DIR, load_run
@@ -384,6 +513,30 @@ def main() -> int:
                             "reply), so worth setting even when the judge is disabled.")
         p.add_argument("--skip-validation", action="store_true")
         p.set_defaults(func=cmd_evaluate if name == "evaluate" else cmd_run_all)
+
+    p = sub.add_parser("gmail-mine",
+                       help="Build a retrieval corpus from your own Gmail replies")
+    p.add_argument("--max-threads", type=int, default=300,
+                   help="How many threads to scan (default: 300)")
+    p.add_argument("--out", default="data/gmail_corpus.jsonl", help="Output path")
+    p.set_defaults(func=cmd_gmail_mine)
+
+    p = sub.add_parser("gmail-draft",
+                       help="Draft replies to unread mail, grounded in your past replies")
+    add_provider_args(p)
+    p.add_argument("--corpus", default="data/gmail_corpus.jsonl",
+                   help="Corpus from gmail-mine")
+    p.add_argument("--query", default="in:inbox is:unread -from:me",
+                   help="Gmail search query for what to reply to")
+    p.add_argument("--limit", type=int, default=5, help="Max messages to draft for")
+    p.add_argument("--variant", default="rag_fewshot",
+                   choices=["zero_shot", "static_fewshot", "rag_fewshot",
+                            "rag_plus_stylecard"])
+    p.add_argument("--dry-run", action="store_true",
+                   help="Show what would be drafted without calling the LLM or writing")
+    p.add_argument("--force", action="store_true",
+                   help="Draft even when a blocking check (placeholder/unsourced ref) fails")
+    p.set_defaults(func=cmd_gmail_draft)
 
     p = sub.add_parser("judge-agreement",
                        help="Score one variant with an LLM judge and correlate with the metric")
