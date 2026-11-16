@@ -13,3 +13,8 @@ generated/
 credentials.json
 .gmail_token.json
 data/gmail_corpus.jsonl
+
+# /brag output: keep only the rendered video and its poster
+brag-output/*
+!brag-output/brag.mp4
+!brag-output/brag.jpg
