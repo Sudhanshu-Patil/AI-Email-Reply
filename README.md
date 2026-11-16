@@ -1,8 +1,6 @@
 # Suggested email replies, and a way to tell whether they're any good
 
-![24-second demo: 0% of our AI email drafts were sendable without edits](brag-output/brag.gif)
-
-*24-second demo. [Watch with sound](brag-output/brag.mp4).*
+https://github.com/user-attachments/assets/39f17bca-201d-4d4b-8dc9-f51cb03d5ba0
 
 Given an incoming email, this system drafts a reply grounded in a corpus of past
 email/reply pairs — and then measures how good that draft actually is, on five dimensions,

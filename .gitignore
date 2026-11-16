@@ -18,4 +18,3 @@ data/gmail_corpus.jsonl
 brag-output/*
 !brag-output/brag.mp4
 !brag-output/brag.jpg
-!brag-output/brag.gif
