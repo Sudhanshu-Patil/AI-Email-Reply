@@ -1,3 +1,5 @@
+
+
 # Suggested email replies, and a way to tell whether they're any good
 
 Given an incoming email, this system drafts a reply grounded in a corpus of past
@@ -7,6 +9,8 @@ with evidence that the measurement tracks real quality.
 The evaluation is the substance here. A generator is easy; knowing whether its output is
 worth sending is the hard part, so most of this README is about the metric and how it was
 validated.
+
+https://github.com/user-attachments/assets/39f17bca-201d-4d4b-8dc9-f51cb03d5ba0
 
 ```bash
 pip install -r requirements.txt
