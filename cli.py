@@ -505,7 +505,7 @@ def main() -> int:
                        help="Judge samples per response for self-consistency (default: 3)")
         p.add_argument("--no-llm-intent", action="store_true",
                        help="Use the offline cue classifier for intent (weaker on "
-                            "generated replies — see README)")
+                            "generated replies — see docs/EVALUATION.md)")
         p.add_argument("--intent-provider", default=None, choices=sorted(PROVIDERS),
                        help="Provider for intent classification. Defaults to --provider.")
         p.add_argument("--intent-model", default=None,

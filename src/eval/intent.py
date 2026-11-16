@@ -72,7 +72,7 @@ class IntentResult:
 # verb phrases, so the offline classifier matches those directly.
 #
 # These patterns were written against the training split only. Held-out accuracy is
-# reported in the evaluation output and in the README — treat it as the real number.
+# reported in the evaluation output and in docs/EVALUATION.md — treat it as the real number.
 
 import re as _re
 

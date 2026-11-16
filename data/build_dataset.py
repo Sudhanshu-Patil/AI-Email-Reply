@@ -85,7 +85,7 @@ def leakage_report(records: list[dict], splits: dict[str, list[str]]) -> dict:
 
     If a test item has a near-identical twin in the retrieval pool, a high score proves
     nothing except that copying works. We measure this rather than asserting it doesn't
-    happen, and the number goes in the README.
+    happen, and the number goes in docs/EVALUATION.md.
     """
     from src.embeddings import get_embedder
 
